@@ -2227,7 +2227,7 @@ body {
         border-radius: 30px !important;
         width: 100% !important;
         height: auto !important;
-        max-width: 520px !important; /* Increased from 450px */
+        max-width: 580px !important; /* Further increased from 520px */
         margin: 0 auto !important;
     }
 
@@ -2255,13 +2255,13 @@ body {
     }
 
     .badge-top-right {
-        top: 0px !important; /* Move higher */
-        right: -15px !important; /* Further right */
+        top: 25px !important; /* Adjusted position */
+        right: 15px !important; /* Moved closer */
     }
 
     .badge-bottom-left {
-        bottom: 5px !important; /* Move lower */
-        left: -15px !important; /* Further left */
+        bottom: 25px !important; 
+        left: 15px !important; /* Moved closer */
     }
 
     .profile-img-wrap img {
@@ -3372,12 +3372,12 @@ body {
 
 .profile-card {
     background: #ffffff;
-    padding: 20px;
+    padding: 12px; /* Reduced from 20px to make image larger */
     border-radius: 60px;
     box-shadow: 0 40px 120px rgba(0, 0, 0, 0.1);
     transform: rotate(1.5deg);
     width: 100%;
-    max-width: 550px; /* Increased from 480px */
+    max-width: 620px; /* Further increased from 550px */
     position: relative;
     border: 1px solid rgba(0, 0, 0, 0.03);
 }
@@ -3413,13 +3413,13 @@ body {
 }
 
 .floating-glass-badge.top-right {
-    top: 30px;
-    right: -30px;
+    top: 50px;
+    right: 5px; /* Moved closer */
 }
 
 .floating-glass-badge.bottom-left {
     bottom: 80px;
-    left: -50px;
+    left: -15px; /* Moved closer */
     animation-delay: -2s;
 }
 
