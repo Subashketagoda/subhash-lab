@@ -2166,12 +2166,14 @@ body {
 
     .hero-contact-bar {
         position: static !important;
-        margin-top: 60px !important;
+        margin-top: 40px !important;
         justify-content: center !important;
         width: 100% !important;
         border-top: 1px solid rgba(0, 0, 0, 0.05) !important;
-        padding-top: 30px !important;
-        gap: 100px !important;
+        padding-top: 25px !important;
+        gap: 15px !important; /* MUCH smaller gap */
+        flex-direction: column !important;
+        align-items: center !important;
     }
 
     .hero-scroll-indicator {
@@ -2179,16 +2181,15 @@ body {
         position: relative !important;
         bottom: auto !important;
         left: auto !important;
-        /* Reset global left */
         transform: none !important;
-        /* Reset global transform */
-        margin-top: 100px !important;
+        margin-top: 60px !important;
         margin-bottom: 20px !important;
         justify-content: center !important;
         animation: fadeUp 1s ease forwards !important;
         flex-direction: column !important;
         align-items: center !important;
         width: 100% !important;
+        gap: 10px !important; /* Fixed gap */
     }
 
     .profile-overhaul {
@@ -2224,6 +2225,39 @@ body {
         border-radius: 30px !important;
         width: 100% !important;
         height: auto !important;
+        max-width: 450px !important; /* Caps size for better mobile feel */
+        margin: 0 auto !important;
+    }
+
+    /* Refine badges for mobile - scaled down and better positioned */
+    .floating-glass-badge {
+        padding: 10px 15px !important;
+        border-radius: 18px !important;
+        gap: 10px !important;
+        max-width: 180px !important;
+    }
+
+    .badge-icon-wrap {
+        width: 32px !important;
+        height: 32px !important;
+    }
+
+    .badge-text .label {
+        font-size: 0.75rem !important;
+    }
+
+    .badge-text .desc {
+        font-size: 0.65rem !important;
+    }
+
+    .badge-top-right {
+        top: 20px !important;
+        right: -10px !important;
+    }
+
+    .badge-bottom-left {
+        bottom: 20px !important;
+        left: -10px !important;
     }
 
     .profile-img-wrap img {
