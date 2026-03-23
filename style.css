@@ -2158,6 +2158,8 @@ body {
         margin-left: auto !important;
         margin-right: auto !important;
         width: 100%;
+        margin-top: 25px !important;
+        margin-bottom: 15px !important; /* Further reduced from 30px */
     }
 
     .pro-swipe-bar {
@@ -2166,12 +2168,12 @@ body {
 
     .hero-contact-bar {
         position: static !important;
-        margin-top: 40px !important;
+        margin-top: 0px !important; 
         justify-content: center !important;
         width: 100% !important;
         border-top: 1px solid rgba(0, 0, 0, 0.05) !important;
-        padding-top: 25px !important;
-        gap: 15px !important; /* MUCH smaller gap */
+        padding-top: 10px !important; /* Reduced from 20px */
+        gap: 12px !important; 
         flex-direction: column !important;
         align-items: center !important;
     }
@@ -2225,7 +2227,7 @@ body {
         border-radius: 30px !important;
         width: 100% !important;
         height: auto !important;
-        max-width: 450px !important; /* Caps size for better mobile feel */
+        max-width: 520px !important; /* Increased from 450px */
         margin: 0 auto !important;
     }
 
@@ -3254,7 +3256,7 @@ body {
 
 /* LIQUID GLASS SWIPE BAR (ULTRA PREMIUM) */
 .swipe-btn-row {
-    margin: 45px 0 65px 0;
+    margin: 35px 0 25px 0; /* Reduced from 45px/65px */
     position: relative;
     z-index: 100;
     width: 100%;
@@ -3348,8 +3350,8 @@ body {
     display: flex;
     flex-wrap: wrap;
     gap: 35px;
-    border-top: 3px solid #3b82f6;
-    padding-top: 25px;
+    border-top: 1.5px solid rgba(59, 130, 246, 0.2); /* Thinner, softer border */
+    padding-top: 15px; /* Reduced from 25px */
     width: fit-content;
 }
 
@@ -3375,7 +3377,7 @@ body {
     box-shadow: 0 40px 120px rgba(0, 0, 0, 0.1);
     transform: rotate(1.5deg);
     width: 100%;
-    max-width: 480px;
+    max-width: 550px; /* Increased from 480px */
     position: relative;
     border: 1px solid rgba(0, 0, 0, 0.03);
 }
