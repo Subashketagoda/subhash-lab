@@ -618,59 +618,66 @@ body.content-reveal > *:not(#intro-screen) {
 @media (max-width: 768px) {
     /* Make intro fullscreen and centered on mobile */
     .intro-content {
-        gap: 24px;
-        padding: 30px 20px;
+        gap: 20px;
+        padding: 20px 20px;
         justify-content: center;
     }
 
     /* Large logo reveal on mobile */
     .intro-logo-reveal {
-        gap: 32px;
+        gap: 40px;
+        width: 100%;
+        padding: 0 20px;
     }
 
     /* Big S icon on mobile */
     .intro-logo-icon svg {
-        width: 110px !important;
-        height: 110px !important;
+        width: 130px !important;
+        height: 130px !important;
     }
 
-    /* SUBHASHLAB text — big and bold on mobile */
+    /* SUBHASHLAB text — VERY big on mobile */
     .intro-brand-logo {
         flex-direction: row;
         align-items: baseline;
         justify-content: center;
+        flex-wrap: wrap;
+        gap: 0;
     }
 
     .intro-brand-main {
-        font-size: clamp(2.8rem, 14vw, 4.5rem);
-        letter-spacing: -1.5px;
+        font-size: clamp(3.5rem, 18vw, 7rem);
+        letter-spacing: -2px;
+        line-height: 1;
     }
 
     .intro-brand-sub {
-        font-size: clamp(2.8rem, 14vw, 4.5rem);
+        font-size: clamp(3.5rem, 18vw, 7rem);
         letter-spacing: 1px;
+        line-height: 1;
     }
 
     /* Full-width swipe bar on mobile */
     .intro-swipe-bar {
-        width: calc(100vw - 60px);
-        max-width: 360px;
-        height: 72px;
+        width: calc(100vw - 40px);
+        max-width: 400px;
+        height: 76px;
     }
 
     .intro-swipe-thumb {
-        width: 60px;
-        height: 60px;
+        width: 64px;
+        height: 64px;
+        font-size: 1.4rem;
     }
 
     .intro-swipe-text {
-        font-size: 0.7rem;
+        font-size: 0.72rem;
         letter-spacing: 3px;
     }
 
-    /* Old logo text classes — make bigger */
-    .logo-text-main, .logo-text-sub { font-size: 2.8rem; }
-    .intro-word { font-size: 2.2rem; }
+    /* Old logo text classes */
+    .logo-text-main, .logo-text-sub { font-size: 3rem; }
+    .intro-word { font-size: 2.5rem; }
 }
 
 /* Cursor glow */
