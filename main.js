@@ -1,14 +1,153 @@
 // ==========================================
-// PRELOADER
+// PREMIUM CINEMATIC INTRO LOGIC
 // ==========================================
 window.addEventListener('load', () => {
-    const preloader = document.getElementById('preloader');
-    if (preloader) {
-        // Reduced from 5s to 1.5s for faster experience
-        setTimeout(() => {
-            preloader.classList.add('fade-out');
-        }, 1500); 
+    const introScreen = document.getElementById('intro-screen');
+    const introWord = document.getElementById('intro-word');
+    const introLogo = document.getElementById('intro-logo');
+    const introProgress = document.getElementById('intro-progress');
+    const introIcon = document.getElementById('intro-icon');
+    if (!introScreen) return;
+
+    const words = ["Innovation", "Strategy", "Excellence", "Leadership"];
+    const icons = [
+        // Innovation (Bulb + Orbits)
+        `<svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">
+            <path d="M50 78c14 0 22-10 22-22s-8-22-22-22-22 10-22 22 8 22 22 22zM42 78h16M44 84h12M47 90h6"/>
+            <circle cx="50" cy="56" r="3" fill="currentColor"/>
+            <ellipse class="orbit-1" cx="50" cy="56" rx="44" ry="14" transform="rotate(30 50 56)"/>
+            <ellipse class="orbit-2" cx="50" cy="56" rx="44" ry="14" transform="rotate(-30 50 56)"/>
+        </svg>`,
+        // Strategy (Target + Arrow)
+        `<svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">
+            <circle cx="50" cy="50" r="40" class="ring-1"/>
+            <circle cx="50" cy="50" r="22" class="ring-2"/>
+            <circle cx="50" cy="50" r="8" fill="currentColor"/>
+            <g class="arrow-hit">
+                <path d="M85 15L50 50" />
+                <path d="M85 15l-2-12m2 12l-12-2" />
+                <path d="M90 10l-2-12m2 12l-12-2" opacity="0.5"/>
+            </g>
+        </svg>`,
+        // Excellence (Diamond)
+        `<svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M25 20h50l20 25-45 45-45-45 20-25z" class="diamond-outline"/>
+            <path d="M5 45h90" class="diamond-line"/>
+            <path d="M25 20L45 45l5 45M75 20L55 45l-5 45M50 20v25" class="diamond-line"/>
+        </svg>`,
+        // Leadership (Nav Arrow)
+        `<svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="nav-arrow-svg">
+            <path d="M85 15L15 55l35 12 12 35z"/>
+            <path d="M85 15L52 65" stroke-dasharray="4 4"/>
+            <text x="85" y="10" font-size="10" font-weight="900" fill="currentColor" opacity="0.5">N</text>
+        </svg>`
+    ];
+    let wordIndex = 0;
+    let progress = 0;
+
+    // Scramble Text Function
+    function scrambleText(element, newText) {
+        if(!element) return;
+        let frame = 0;
+        const target = newText;
+        const length = target.length;
+        
+        const animate = () => {
+            let complete = 0;
+            let output = '';
+            
+            for (let i = 0; i < length; i++) {
+                if (frame >= i * 4) { // Sequential reveal
+                    output += target[i];
+                    complete++;
+                } else {
+                    output += ' '; // Empty space instead of random chars
+                }
+            }
+            
+            element.textContent = output;
+            if (complete === length) {
+                element.classList.add('active');
+            } else {
+                requestAnimationFrame(animate);
+                frame += 0.5;
+            }
+        }
+        animate();
     }
+
+    // Show first word immediately
+    if(introWord) {
+        scrambleText(introWord, words[0]);
+        updateIcon(0);
+        wordIndex++;
+    }
+
+    // Word change interval
+    const wordInterval = setInterval(() => {
+        if (wordIndex < words.length) {
+            introWord.classList.add('exit');
+            updateIcon(wordIndex);
+            
+            setTimeout(() => {
+                introWord.classList.remove('exit');
+                scrambleText(introWord, words[wordIndex]);
+                wordIndex++;
+            }, 800); 
+        } else {
+            clearInterval(wordInterval);
+            finishIntro();
+        }
+    }, 2500); // 2.5s Word Interval (was 500ms)
+
+    // Progress bar simulation
+    const progressInterval = setInterval(() => {
+        if (progress < 100) {
+            progress += 1;
+            if (introProgress) introProgress.style.width = `${progress}%`;
+        } else {
+            clearInterval(progressInterval);
+        }
+    }, 45);
+
+    function updateIcon(index) {
+        if(!introIcon) return;
+        introIcon.classList.remove('active');
+        
+        setTimeout(() => {
+            introIcon.innerHTML = icons[index];
+            introIcon.classList.add('active');
+        }, 600);
+    }
+
+    function finishIntro() {
+        // Hide words and icons, show logo
+        if(introWord) introWord.parentElement.style.display = 'none';
+        if(introIcon) introIcon.style.display = 'none';
+        if(introLogo) introLogo.classList.add('show');
+        
+        setTimeout(() => {
+            if(introScreen) introScreen.classList.add('finished');
+            
+            // Zoom in effect for content reveal
+            document.body.style.transition = 'transform 1.5s var(--ease)';
+            document.body.style.transform = 'scale(0.95)';
+            
+            setTimeout(() => {
+                if(introScreen) introScreen.classList.add('hide');
+                document.body.style.overflow = 'auto'; // Re-enable scroll
+                document.body.style.transform = 'scale(1)';
+                
+                setTimeout(() => {
+                    document.body.style.transition = '';
+                    document.body.style.transform = '';
+                }, 1500);
+            }, 1000);
+        }, 1500);
+    }
+
+    // Lock scroll during intro
+    document.body.style.overflow = 'hidden';
 });
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -60,7 +199,7 @@ document.addEventListener('DOMContentLoaded', () => {
             draw() {
                 ctx.beginPath();
                 ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                ctx.fillStyle = `rgba(108, 92, 231, ${this.opacity})`;
+                ctx.fillStyle = `rgba(108, 92, 231, ${this.opacity * 1.5})`;
                 ctx.fill();
             }
         }
@@ -410,5 +549,30 @@ document.addEventListener('DOMContentLoaded', () => {
             initCanvas();
         });
     }
+
+    // ==========================================
+    // MAGNETIC BUTTONS REFINED
+    // ==========================================
+    const magneticElements = document.querySelectorAll('.nav-link, .btn-outline, .btn-pill-white, .social-btn');
+    
+    magneticElements.forEach(el => {
+        el.addEventListener('mousemove', (e) => {
+            const rect = el.getBoundingClientRect();
+            const x = e.clientX - rect.left - rect.width / 2;
+            const y = e.clientY - rect.top - rect.height / 2;
+            
+            el.style.transform = `translate(${x * 0.3}px, ${y * 0.3}px)`;
+            if(el.classList.contains('nav-link')) {
+                el.style.background = 'rgba(79, 70, 229, 0.05)';
+            }
+        });
+        
+        el.addEventListener('mouseleave', () => {
+            el.style.transform = `translate(0px, 0px)`;
+            if(el.classList.contains('nav-link') && !el.classList.contains('active')) {
+                el.style.background = '';
+            }
+        });
+    });
 
 });

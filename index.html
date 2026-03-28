@@ -46,15 +46,49 @@
     <link rel="stylesheet" href="style.css?v=36">
 </head>
 <body>
-    <!-- Global Preloader -->
-    <div id="preloader" class="preloader">
-        <div class="loader-content">
-            <div class="loader-lottie-wrapper">
-                <span class="loader-logo-text">S</span>
-                <dotlottie-wc src="https://lottie.host/f93ab1d8-8ba8-4fa8-bedf-8a002892e7d3/MTn7i0BFid.lottie" autoplay loop></dotlottie-wc>
+    <!-- Premium Cinematic Intro -->
+    <div id="intro-screen" class="intro-screen">
+        <div class="intro-content">
+            <div class="intro-ambient-pulse"></div>
+            <!-- Creative Morphing Blobs -->
+            <div class="intro-blobs">
+                <div class="blob blob-1"></div>
+                <div class="blob blob-2"></div>
+                <div class="blob blob-3"></div>
             </div>
-            <div class="loader-text">Loading Experience...</div>
+            <div class="intro-icon-wrapper" id="intro-icon">
+                <!-- SVG dynamically injected here -->
+            </div>
+            <div class="intro-text-wrapper">
+                <span class="intro-word" id="intro-word"></span>
+            </div>
+            <div class="intro-logo-reveal" id="intro-logo">
+                <div class="intro-logo-icon">
+                    <svg width="80" height="80" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="intro_g" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#4f46e5" />
+                                <stop offset="100%" stop-color="#0ea5e9" />
+                            </linearGradient>
+                        </defs>
+                        <rect width="64" height="64" rx="16" fill="url(#intro_g)" />
+                        <text x="50%" y="50%" dominant-baseline="central" text-anchor="middle" font-family="'Space Grotesk', sans-serif" font-size="34" font-weight="900" fill="white">S</text>
+                    </svg>
+                </div>
+                <div class="intro-logo-text">
+                    <span class="logo-text-main">
+                        <span style="--i:0">S</span><span style="--i:1">U</span><span style="--i:2">B</span><span style="--i:3">H</span><span style="--i:4">A</span><span style="--i:5">S</span><span style="--i:6">H</span>
+                    </span>
+                    <span class="logo-text-sub">
+                        <span style="--i:7">L</span><span style="--i:8">A</span><span style="--i:9">B</span>
+                    </span>
+                </div>
+            </div>
+            <div class="intro-progress-bar">
+                <div class="intro-progress-fill" id="intro-progress"></div>
+            </div>
         </div>
+        <div class="intro-finish-bg"></div>
     </div>
 
     <!-- Cursor glow -->
