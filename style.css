@@ -616,8 +616,61 @@ body.content-reveal > *:not(#intro-screen) {
 }
 
 @media (max-width: 768px) {
-    .intro-word { font-size: 2rem; }
-    .logo-text-main, .logo-text-sub { font-size: 2.5rem; }
+    /* Make intro fullscreen and centered on mobile */
+    .intro-content {
+        gap: 24px;
+        padding: 30px 20px;
+        justify-content: center;
+    }
+
+    /* Large logo reveal on mobile */
+    .intro-logo-reveal {
+        gap: 32px;
+    }
+
+    /* Big S icon on mobile */
+    .intro-logo-icon svg {
+        width: 110px !important;
+        height: 110px !important;
+    }
+
+    /* SUBHASHLAB text — big and bold on mobile */
+    .intro-brand-logo {
+        flex-direction: row;
+        align-items: baseline;
+        justify-content: center;
+    }
+
+    .intro-brand-main {
+        font-size: clamp(2.8rem, 14vw, 4.5rem);
+        letter-spacing: -1.5px;
+    }
+
+    .intro-brand-sub {
+        font-size: clamp(2.8rem, 14vw, 4.5rem);
+        letter-spacing: 1px;
+    }
+
+    /* Full-width swipe bar on mobile */
+    .intro-swipe-bar {
+        width: calc(100vw - 60px);
+        max-width: 360px;
+        height: 72px;
+    }
+
+    .intro-swipe-thumb {
+        width: 60px;
+        height: 60px;
+    }
+
+    .intro-swipe-text {
+        font-size: 0.7rem;
+        letter-spacing: 3px;
+    }
+
+    /* Old logo text classes — make bigger */
+    .logo-text-main, .logo-text-sub { font-size: 2.8rem; }
+    .intro-word { font-size: 2.2rem; }
 }
 
 /* Cursor glow */
