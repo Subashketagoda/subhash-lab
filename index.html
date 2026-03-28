@@ -43,11 +43,12 @@
         };
     </script>
     <script src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.9.3/dist/dotlottie-wc.js" type="module"></script>
-    <link rel="stylesheet" href="style.css?v=36">
+    <link rel="stylesheet" href="style.css?v=44">
 </head>
 <body>
     <!-- Premium Cinematic Intro -->
     <div id="intro-screen" class="intro-screen">
+        <canvas class="intro-canvas" id="introCanvas"></canvas>
         <div class="intro-content">
             <div class="intro-ambient-pulse"></div>
             <!-- Creative Morphing Blobs -->
@@ -56,15 +57,13 @@
                 <div class="blob blob-2"></div>
                 <div class="blob blob-3"></div>
             </div>
-            <div class="intro-icon-wrapper" id="intro-icon">
-                <!-- SVG dynamically injected here -->
-            </div>
-            <div class="intro-text-wrapper">
-                <span class="intro-word" id="intro-word"></span>
+            <div class="intro-resonance" id="intro-resonance">
+                <div class="resonance-ring"></div>
+                <div class="resonance-ring"></div>
             </div>
             <div class="intro-logo-reveal" id="intro-logo">
                 <div class="intro-logo-icon">
-                    <svg width="80" height="80" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <svg width="90" height="90" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <defs>
                             <linearGradient id="intro_g" x1="0%" y1="0%" x2="100%" y2="100%">
                                 <stop offset="0%" stop-color="#4f46e5" />
@@ -75,17 +74,15 @@
                         <text x="50%" y="50%" dominant-baseline="central" text-anchor="middle" font-family="'Space Grotesk', sans-serif" font-size="34" font-weight="900" fill="white">S</text>
                     </svg>
                 </div>
-                <div class="intro-logo-text">
-                    <span class="logo-text-main">
-                        <span style="--i:0">S</span><span style="--i:1">U</span><span style="--i:2">B</span><span style="--i:3">H</span><span style="--i:4">A</span><span style="--i:5">S</span><span style="--i:6">H</span>
-                    </span>
-                    <span class="logo-text-sub">
-                        <span style="--i:7">L</span><span style="--i:8">A</span><span style="--i:9">B</span>
-                    </span>
+                <div class="intro-brand-logo">
+                    <span class="intro-brand-main">SUBHASH</span><span class="intro-brand-sub">LAB</span>
                 </div>
-            </div>
-            <div class="intro-progress-bar">
-                <div class="intro-progress-fill" id="intro-progress"></div>
+                <div class="intro-swipe-bar" id="introSwipeBar">
+                    <div class="intro-swipe-thumb" id="introSwipeThumb">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                    </div>
+                    <span class="intro-swipe-text" id="introSwipeText">SWIPE TO ENTER</span>
+                </div>
             </div>
         </div>
         <div class="intro-finish-bg"></div>
@@ -169,7 +166,7 @@
                                 <div class="swipe-thumb" id="swipeThumb">
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
                                 </div>
-                                <span class="swipe-text" id="swipeText">Explore the Business Ecosystem</span>
+                                <span class="swipe-text" id="swipeText">Start a project with me</span>
                             </div>
                         </div>
                     </div>
