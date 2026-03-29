@@ -192,6 +192,72 @@ window.addEventListener('load', () => {
     }
 
     function setupIntroSwipe() {
+        // High-end Cinematic Sound Synthesis
+        function playCinematicEnterSound() {
+            try {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (!AudioContext) return;
+                const ctx = new AudioContext();
+
+                // 1. Deep Bass Boom (Low frequency rumble)
+                const bass = ctx.createOscillator();
+                const bassGain = ctx.createGain();
+                bass.type = 'sine';
+                bass.connect(bassGain);
+                bassGain.connect(ctx.destination);
+                
+                bass.frequency.setValueAtTime(150, ctx.currentTime);
+                bass.frequency.exponentialRampToValueAtTime(30, ctx.currentTime + 1.5);
+                
+                bassGain.gain.setValueAtTime(0, ctx.currentTime);
+                bassGain.gain.linearRampToValueAtTime(1.5, ctx.currentTime + 0.1);
+                bassGain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 2.0);
+
+                // 2. Sci-Fi Warp Whoosh (White noise with frequency sweep)
+                const noiseBuffer = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
+                const output = noiseBuffer.getChannelData(0);
+                for (let i = 0; i < noiseBuffer.length; i++) output[i] = Math.random() * 2 - 1;
+                
+                const whiteNoise = ctx.createBufferSource();
+                whiteNoise.buffer = noiseBuffer;
+
+                const noiseFilter = ctx.createBiquadFilter();
+                noiseFilter.type = 'bandpass';
+                noiseFilter.Q.value = 1.0;
+                noiseFilter.frequency.setValueAtTime(100, ctx.currentTime);
+                noiseFilter.frequency.exponentialRampToValueAtTime(3000, ctx.currentTime + 0.7);
+                noiseFilter.frequency.exponentialRampToValueAtTime(100, ctx.currentTime + 1.8);
+
+                const noiseGain = ctx.createGain();
+                noiseGain.gain.setValueAtTime(0, ctx.currentTime);
+                noiseGain.gain.linearRampToValueAtTime(0.6, ctx.currentTime + 0.7);
+                noiseGain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 2.0);
+
+                whiteNoise.connect(noiseFilter);
+                noiseFilter.connect(noiseGain);
+                noiseGain.connect(ctx.destination);
+
+                // 3. High-Tech Synth Sweep
+                const synth = ctx.createOscillator();
+                const synthGain = ctx.createGain();
+                synth.type = 'square';
+                synth.connect(synthGain);
+                synthGain.connect(ctx.destination);
+                
+                synth.frequency.setValueAtTime(600, ctx.currentTime);
+                synth.frequency.exponentialRampToValueAtTime(100, ctx.currentTime + 0.8);
+                
+                synthGain.gain.setValueAtTime(0, ctx.currentTime);
+                synthGain.gain.linearRampToValueAtTime(0.1, ctx.currentTime + 0.2);
+                synthGain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1.0);
+
+                // Play all synthesized nodes
+                bass.start(ctx.currentTime); bass.stop(ctx.currentTime + 2.0);
+                whiteNoise.start(ctx.currentTime); whiteNoise.stop(ctx.currentTime + 2.0);
+                synth.start(ctx.currentTime); synth.stop(ctx.currentTime + 1.0);
+            } catch (e) { console.error("Audio API not supported", e); }
+        }
+
         const swipeBar = document.getElementById('introSwipeBar');
         const swipeThumb = document.getElementById('introSwipeThumb');
         const swipeText = document.getElementById('introSwipeText');
@@ -218,6 +284,9 @@ window.addEventListener('load', () => {
             if (delta >= maxDrag * 0.92) {
                 isDragging = false;
                 swipeThumb.innerHTML = '✔';
+
+                // Play the sound!
+                playCinematicEnterSound();
 
                 // 🚀 TRIGGER WARP JUMP
                 if (typeof window.triggerWarpJump === 'function') {
