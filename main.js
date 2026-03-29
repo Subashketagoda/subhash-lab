@@ -576,7 +576,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ==========================================
-    // CONTACT FORM
+    // CONTACT FORM SUBMISSION
     // ==========================================
     const contactForm = document.getElementById('contactForm');
     if (contactForm) {
@@ -779,5 +779,45 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
+
+    // ==========================================
+    // ADMIN CUSTOM INJECTIONS (Banner & CSS)
+    // ==========================================
+    try {
+        const css = localStorage.getItem('so_admin_css');
+        if (css && css.trim()) {
+            const style = document.createElement('style');
+            style.id = 'admin-custom-css';
+            style.innerHTML = css;
+            document.head.appendChild(style);
+        }
+
+        const bannerData = localStorage.getItem('so_admin_banner');
+        if (bannerData) {
+            const banner = JSON.parse(bannerData);
+            if (banner.enabled && banner.text) {
+                const bannerEl = document.createElement('div');
+                bannerEl.style.cssText = `
+                    background: ${banner.color || '#4f46e5'};
+                    color: white;
+                    text-align: center;
+                    padding: 10px 20px;
+                    font-size: 14px;
+                    font-weight: 500;
+                    position: fixed;
+                    top: 0; left: 0; right: 0;
+                    z-index: 99999;
+                    cursor: ${banner.link ? 'pointer' : 'default'};
+                    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+                `;
+                bannerEl.innerHTML = `<span>${banner.text}</span>`;
+                if (banner.link) {
+                    bannerEl.onclick = () => window.open(banner.link, '_blank');
+                }
+                document.body.appendChild(bannerEl);
+                document.body.style.paddingTop = '40px'; // Prevent banner from overlapping content
+            }
+        }
+    } catch(e) { console.error('Error applying admin settings', e); }
 
 });

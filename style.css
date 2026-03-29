@@ -2481,6 +2481,7 @@ body.content-reveal>*:not(#intro-screen) {
     border: 1px solid var(--border);
     border-radius: var(--radius-xl);
     padding: 40px;
+    padding-bottom: 60px; /* Ensured room for the button */
 }
 
 .form-group {
@@ -4564,7 +4565,9 @@ body {
 
 @media (max-width: 480px) {
     .pro-title {
-        font-size: 1.8rem !important;
+        font-size: clamp(3rem, 16vw, 4.5rem) !important;
+        letter-spacing: -3px !important;
+        line-height: 0.9 !important;
     }
 
     .pro-swipe-bar {

@@ -745,6 +745,18 @@
                 <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
                 Social Links
             </div>
+            <div class="nav-item" onclick="showPanel('tasks', this)">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                Task Board
+            </div>
+            <div class="nav-item" onclick="showPanel('banner', this)">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+                Site Banner
+            </div>
+            <div class="nav-item" onclick="showPanel('customcode', this)">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                Custom CSS
+            </div>
 
             <div class="nav-section-title" style="margin-top:12px">Developer</div>
             <div class="nav-item" onclick="showPanel('console', this)">
@@ -1150,6 +1162,64 @@
             </div>
         </div>
 
+        <!-- ── TASK BOARD PANEL ── -->
+        <div class="panel" id="panel-tasks">
+            <div class="card">
+                <div class="card-title"><span class="dot"></span> Admin Task Board</div>
+                <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Track your personal to-dos, site updates, or project milestones right here.</p>
+                <div style="display:flex;gap:10px;margin-bottom:20px">
+                    <input class="admin-input" id="newTaskInput" placeholder="E.g., Update Resume link, Add new Client..." onkeydown="if(event.key==='Enter') addTask()">
+                    <button class="admin-btn" onclick="addTask()">➕ Add</button>
+                </div>
+                <ul class="activity-list" id="taskList" style="max-height:400px;overflow-y:auto;border:1px solid var(--border);border-radius:10px;padding:10px;background:var(--surface2)">
+                    <!-- Tasks will load here -->
+                </ul>
+            </div>
+        </div>
+
+        <!-- ── BANNER PANEL ── -->
+        <div class="panel" id="panel-banner">
+            <div class="card">
+                <div class="card-title"><span class="dot"></span> Global Announcement Banner</div>
+                <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Display a floating notification banner at the top of your website (e.g., "Available for new projects").</p>
+                
+                <div class="settings-grid" style="margin-bottom:16px">
+                    <div class="setting-item">
+                        <div><div class="setting-label">Show Banner</div><div class="setting-desc">Enable or disable global banner</div></div>
+                        <button class="toggle" id="toggle-banner" onclick="toggleSetting(this,'banner')"></button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Banner Text</label>
+                    <input class="admin-input" id="bannerText" placeholder="e.g. 🎉 I am completely open for new freelance projects!">
+                </div>
+                <div class="form-group">
+                    <label>Banner Link (Optional)</label>
+                    <input class="admin-input" id="bannerLink" placeholder="https://...">
+                </div>
+                <div class="form-group">
+                    <label>Banner Color</label>
+                    <input type="color" id="bannerColor" value="#6c5ce7" style="width:100%;height:44px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);cursor:pointer">
+                </div>
+                <button class="admin-btn" onclick="saveBannerSettings()">💾 Save Banner</button>
+            </div>
+        </div>
+
+        <!-- ── CUSTOM CODE PANEL ── -->
+        <div class="panel" id="panel-customcode">
+            <div class="card">
+                <div class="card-title"><span class="dot"></span> Custom CSS Injector</div>
+                <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Write custom CSS rules to deeply override the main site styles. Actively saved locally.</p>
+                <div class="form-group" style="margin-bottom:16px">
+                    <label>Style Overrides (.css)</label>
+                    <textarea class="admin-input" id="customCssData" style="font-family:monospace;min-height:200px;background:#0d0d12;color:#a29bfe;padding:16px" placeholder="/* Enter custom styles here */&#10;body {&#10;  background-color: #000;&#10;}"></textarea>
+                </div>
+                <button class="admin-btn" onclick="saveCustomCSS()">💾 Inject Styles</button>
+                <button class="admin-btn ghost" onclick="document.getElementById('customCssData').value=''; saveCustomCSS()">🗑️ Clear Snippet</button>
+            </div>
+        </div>
+
         <!-- ── APPEARANCE PANEL ── -->
         <div class="panel" id="panel-appearance">
             <div class="card">
@@ -1458,6 +1528,96 @@ function saveSocialLinks() {
 }
 
 // ══════════════════════════════════════════
+// TASK BOARD
+// ══════════════════════════════════════════
+function loadTasks() {
+    const tasks = JSON.parse(localStorage.getItem('so_admin_tasks') || '[]');
+    const list = document.getElementById('taskList');
+    if (!list) return;
+    if (tasks.length === 0) {
+        list.innerHTML = `<li style="text-align:center;padding:20px;color:var(--muted);font-size:13px;border-bottom:none">No tasks yet. Create one!</li>`;
+        return;
+    }
+    list.innerHTML = '';
+    tasks.forEach((t, i) => {
+        const li = document.createElement('li');
+        li.className = 'activity-item';
+        li.style.justifyContent = 'space-between';
+        li.style.alignItems = 'center';
+        li.style.padding = '12px 10px';
+        li.innerHTML = `
+            <div style="display:flex;align-items:center;gap:12px;opacity:${t.done ? '0.5' : '1'}">
+                <input type="checkbox" ${t.done ? 'checked' : ''} style="width:18px;height:18px;cursor:pointer;accent-color:var(--accent)" onchange="toggleTask(${i})">
+                <div class="activity-text" style="text-decoration: ${t.done ? 'line-through' : 'none'}">
+                    <strong style="font-size:14px">${t.text}</strong>
+                </div>
+            </div>
+            <button class="admin-btn ghost" style="padding:6px 10px;font-size:11px;color:var(--red);border:none" onclick="deleteTask(${i})">Delete</button>
+        `;
+        list.appendChild(li);
+    });
+}
+
+function addTask() {
+    const input = document.getElementById('newTaskInput');
+    const text = input.value.trim();
+    if (!text) return;
+    const tasks = JSON.parse(localStorage.getItem('so_admin_tasks') || '[]');
+    tasks.push({ text: text, done: false });
+    localStorage.setItem('so_admin_tasks', JSON.stringify(tasks));
+    input.value = '';
+    loadTasks();
+    showToast('Task added!', 'success');
+}
+
+function toggleTask(idx) {
+    const tasks = JSON.parse(localStorage.getItem('so_admin_tasks') || '[]');
+    if(tasks[idx]) tasks[idx].done = !tasks[idx].done;
+    localStorage.setItem('so_admin_tasks', JSON.stringify(tasks));
+    loadTasks();
+}
+
+function deleteTask(idx) {
+    const tasks = JSON.parse(localStorage.getItem('so_admin_tasks') || '[]');
+    tasks.splice(idx, 1);
+    localStorage.setItem('so_admin_tasks', JSON.stringify(tasks));
+    loadTasks();
+}
+
+// ══════════════════════════════════════════
+// BANNER & CUSTOM CODE
+// ══════════════════════════════════════════
+function loadBannerAndCode() {
+    const banner = JSON.parse(localStorage.getItem('so_admin_banner') || '{"text":"","link":"","color":"#6c5ce7","enabled":false}');
+    const css = localStorage.getItem('so_admin_css') || '';
+    
+    document.getElementById('bannerText').value = banner.text || '';
+    document.getElementById('bannerLink').value = banner.link || '';
+    document.getElementById('bannerColor').value = banner.color || '#6c5ce7';
+    if(banner.enabled) document.getElementById('toggle-banner').classList.add('on');
+    else document.getElementById('toggle-banner').classList.remove('on');
+
+    document.getElementById('customCssData').value = css;
+}
+
+function saveBannerSettings() {
+    const data = {
+        enabled: document.getElementById('toggle-banner').classList.contains('on'),
+        text: document.getElementById('bannerText').value,
+        link: document.getElementById('bannerLink').value,
+        color: document.getElementById('bannerColor').value
+    };
+    localStorage.setItem('so_admin_banner', JSON.stringify(data));
+    showToast('Banner settings saved! ✓', 'success');
+}
+
+function saveCustomCSS() {
+    const css = document.getElementById('customCssData').value;
+    localStorage.setItem('so_admin_css', css);
+    showToast('Custom CSS injected! ✓', 'success');
+}
+
+// ══════════════════════════════════════════
 // APPEARANCE — ACCENT COLOR
 // ══════════════════════════════════════════
 function setAccent(color, color2) {
@@ -1609,6 +1769,8 @@ function initDashboard() {
     loadMessages();
     loadSocialLinks();
     loadExportStats();
+    loadTasks();
+    loadBannerAndCode();
     setTimeout(checkSEO, 200);
 
     // Start real-time systems
@@ -1632,6 +1794,9 @@ function showPanel(id, el) {
         analytics:  ['Analytics',     'Track your site performance'],
         seo:        ['SEO Manager',   'Optimize your search visibility'],
         social:     ['Social Links',  'Manage your social media profiles'],
+        tasks:      ['Task Board',    'Track and manage your website to-dos'],
+        banner:     ['Banner Settings','Manage site-wide announcements'],
+        customcode: ['Custom CSS',    'Inject live overrides to the site'],
         console:    ['Dev Console',   'Developer tools & logs'],
         appearance: ['Appearance',    'Customize admin panel theme'],
         export:     ['Export Data',   'Backup & manage your site data'],
@@ -1646,6 +1811,8 @@ function showPanel(id, el) {
     if (id === 'export')     loadExportStats();
     if (id === 'seo')        checkSEO();
     if (id === 'social')     loadSocialLinks();
+    if (id === 'tasks')      loadTasks();
+    if (id === 'banner' || id === 'customcode') loadBannerAndCode();
 
     closeSidebar();
 }
