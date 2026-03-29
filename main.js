@@ -192,12 +192,33 @@ window.addEventListener('load', () => {
     }
 
     function setupIntroSwipe() {
+        let globalAudioCtx = null;
+
+        function initAudio() {
+            try {
+                if (!globalAudioCtx) {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    if (!AudioContext) return false;
+                    globalAudioCtx = new AudioContext();
+                }
+                if (globalAudioCtx.state === 'suspended') {
+                    globalAudioCtx.resume();
+                }
+                // Play a silent buffer to unlock audio mechanism on iOS/mobile
+                const buffer = globalAudioCtx.createBuffer(1, 1, 22050);
+                const source = globalAudioCtx.createBufferSource();
+                source.buffer = buffer;
+                source.connect(globalAudioCtx.destination);
+                source.start(0);
+                return true;
+            } catch(e) { return false; }
+        }
+
         // High-end Cinematic Sound Synthesis
         function playCinematicEnterSound() {
             try {
-                const AudioContext = window.AudioContext || window.webkitAudioContext;
-                if (!AudioContext) return;
-                const ctx = new AudioContext();
+                if (!globalAudioCtx) return;
+                const ctx = globalAudioCtx;
 
                 // 1. Deep Bass Boom (Low frequency rumble)
                 const bass = ctx.createOscillator();
@@ -268,6 +289,7 @@ window.addEventListener('load', () => {
         const getMaxDrag = () => swipeBar.offsetWidth - swipeThumb.offsetWidth - 8;
 
         const onStart = (e) => {
+            initAudio(); // Unlock audio context on touchstart / mousedown
             isDragging = true;
             startX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
             swipeThumb.style.transition = 'none';
