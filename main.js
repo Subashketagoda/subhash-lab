@@ -16,13 +16,7 @@
         setTimeout(() => { if (onComplete) onComplete(); }, 1200);
     };
 
-    // --- Constellation data (relative 0-1 coords) ---
-    const CONSTELLATIONS = [
-        { pts: [[0.08,0.12],[0.12,0.18],[0.09,0.25],[0.14,0.22],[0.18,0.15]], lines: [[0,1],[1,2],[1,3],[3,4]] },
-        { pts: [[0.80,0.10],[0.85,0.16],[0.82,0.22],[0.88,0.20],[0.91,0.13]], lines: [[0,1],[1,2],[1,3],[3,4],[0,4]] },
-        { pts: [[0.70,0.75],[0.75,0.68],[0.80,0.72],[0.78,0.80],[0.72,0.82]], lines: [[0,1],[1,2],[2,3],[3,4],[4,0]] },
-        { pts: [[0.15,0.70],[0.20,0.65],[0.25,0.70],[0.22,0.78]], lines: [[0,1],[1,2],[2,3],[3,0]] }
-    ];
+    // Constellations removed for a clean space look.
 
     // --- Shooting star state ---
     let shootingStar = null;
@@ -80,62 +74,7 @@
             ctx.fill();
         });
 
-        // --- Planet ---
-        const px = W * 0.85, py = H * 0.2, pr = Math.min(W, H) * 0.055;
-        // Planet glow
-        const planetGlow = ctx.createRadialGradient(px, py, pr * 0.5, px, py, pr * 2.5);
-        planetGlow.addColorStop(0, 'rgba(79,70,229,0.12)');
-        planetGlow.addColorStop(1, 'rgba(79,70,229,0)');
-        ctx.fillStyle = planetGlow;
-        ctx.beginPath();
-        ctx.arc(px, py, pr * 2.5, 0, Math.PI * 2);
-        ctx.fill();
-        // Planet body
-        const planetBody = ctx.createRadialGradient(px - pr * 0.3, py - pr * 0.3, pr * 0.1, px, py, pr);
-        planetBody.addColorStop(0, '#6366f1');
-        planetBody.addColorStop(0.5, '#4338ca');
-        planetBody.addColorStop(1, '#1e1b4b');
-        ctx.fillStyle = planetBody;
-        ctx.beginPath();
-        ctx.arc(px, py, pr, 0, Math.PI * 2);
-        ctx.fill();
-        // Planet ring
-        ctx.save();
-        ctx.translate(px, py);
-        ctx.rotate(-0.4);
-        ctx.scale(1, 0.3);
-        ctx.strokeStyle = 'rgba(139,130,255,0.35)';
-        ctx.lineWidth = 4;
-        ctx.beginPath();
-        ctx.arc(0, 0, pr * 1.7, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.strokeStyle = 'rgba(139,130,255,0.15)';
-        ctx.lineWidth = 8;
-        ctx.beginPath();
-        ctx.arc(0, 0, pr * 2.1, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.restore();
 
-        // --- Constellations ---
-        CONSTELLATIONS.forEach(con => {
-            const pts = con.pts.map(p => [p[0] * W, p[1] * H]);
-            // Lines
-            ctx.strokeStyle = 'rgba(180,190,255,0.12)';
-            ctx.lineWidth = 0.8;
-            con.lines.forEach(([a, b]) => {
-                ctx.beginPath();
-                ctx.moveTo(pts[a][0], pts[a][1]);
-                ctx.lineTo(pts[b][0], pts[b][1]);
-                ctx.stroke();
-            });
-            // Dots
-            pts.forEach(([x, y]) => {
-                ctx.fillStyle = `rgba(200,210,255,${0.4 + Math.sin(tick * 0.02) * 0.1})`;
-                ctx.beginPath();
-                ctx.arc(x, y, 1.5, 0, Math.PI * 2);
-                ctx.fill();
-            });
-        });
 
         // --- Shooting Star ---
         shootingStarTimer++;
