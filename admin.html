@@ -661,6 +661,12 @@
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: var(--bg); }
         ::-webkit-scrollbar-thumb { background: rgba(108,92,231,0.3); border-radius: 3px; }
+
+        /* SPIN ANIMATION */
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
@@ -1313,9 +1319,15 @@
     // Make variables available everywhere
     window.firebaseMessages = [];
     
+    // Track connection state
+    window.firebaseConnected = false;
+    window.firebaseError = null;
+
     // Listen to real-time changes
     const q = query(collection(db, "contacts"), orderBy("timestamp", "desc"));
-    onSnapshot(q, (snapshot) => {
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+        window.firebaseConnected = true;
+        window.firebaseError = null;
         window.firebaseMessages = [];
         snapshot.forEach((doc) => {
             window.firebaseMessages.push({ id: doc.id, ...doc.data() });
@@ -1325,7 +1337,43 @@
         if(typeof window.updateMessagesUI === 'function') {
             window.updateMessagesUI();
         }
+    }, (error) => {
+        console.error("Firebase onSnapshot error:", error);
+        window.firebaseConnected = false;
+        window.firebaseError = error.message || 'Firebase connection failed';
+        if(typeof window.updateMessagesUI === 'function') {
+            window.updateMessagesUI();
+        }
     });
+
+    // Retry function
+    window.retryFirebaseConnection = function() {
+        window.firebaseError = null;
+        window.firebaseConnected = false;
+        window.firebaseMessages = [];
+        if(typeof window.updateMessagesUI === 'function') {
+            window.updateMessagesUI();
+        }
+        // Re-subscribe
+        unsubscribe();
+        onSnapshot(q, (snapshot) => {
+            window.firebaseConnected = true;
+            window.firebaseError = null;
+            window.firebaseMessages = [];
+            snapshot.forEach((doc) => {
+                window.firebaseMessages.push({ id: doc.id, ...doc.data() });
+            });
+            if(typeof window.updateMessagesUI === 'function') {
+                window.updateMessagesUI();
+            }
+        }, (error) => {
+            window.firebaseConnected = false;
+            window.firebaseError = error.message || 'Firebase connection failed';
+            if(typeof window.updateMessagesUI === 'function') {
+                window.updateMessagesUI();
+            }
+        });
+    };
 
     // Delete all logic
     window.clearFirebaseInboxAPI = async function() {
@@ -1351,38 +1399,66 @@ let adminPassword = localStorage.getItem(ADMIN_PASS_KEY) || 'subhash2024';
 // ══════════════════════════════════════════
 // MESSAGES / INBOX (Real-time from Firebase)
 // ══════════════════════════════════════════
+// Timeout tracker
+let _fbSyncTimeout = null;
+
 window.updateMessagesUI = function() {
     const inbox = document.getElementById('messagesInbox');
     if (!inbox) return;
 
-    // Use Firebase Data if available, fallback to local
     const msgs = window.firebaseMessages && window.firebaseMessages.length > 0 
                  ? window.firebaseMessages 
                  : [];
-    
-    // Fallback: mix in localStorage if firebase is empty (for testing)
-    const localCount = parseInt(localStorage.getItem('so_contact_count') || '0');
-    const count = Math.max(msgs.length, localCount);
 
     const badge = document.getElementById('msgBadge');
     if (badge) {
-        badge.textContent = count;
-        badge.style.display = count > 0 ? 'inline' : 'none';
-        
-        // Show indicator if it's Live Firebase Data
-        if(window.firebaseMessages && window.firebaseMessages.length > 0) {
-            badge.style.background = '#00ceca'; // Green live badge
-        }
+        badge.textContent = msgs.length;
+        badge.style.display = msgs.length > 0 ? 'inline' : 'none';
+        if(msgs.length > 0) badge.style.background = '#00ceca';
+    }
+
+    // If Firebase threw an error
+    if (window.firebaseError) {
+        inbox.innerHTML = `<div style="text-align:center;padding:48px 20px;color:var(--muted)">
+            <div style="font-size:48px;margin-bottom:12px">⚠️</div>
+            <div style="font-size:15px;font-weight:600;color:var(--red);margin-bottom:6px">Firebase Connection Error</div>
+            <div style="font-size:13px;margin-bottom:20px;max-width:360px;margin-left:auto;margin-right:auto">${window.firebaseError}</div>
+            <div style="font-size:12px;color:var(--muted);margin-bottom:16px">Make sure your Firestore Security Rules allow reads:<br><code style="background:rgba(255,255,255,0.05);padding:6px 10px;border-radius:6px;margin-top:8px;display:inline-block">allow read, write: if true;</code></div>
+            <button class="admin-btn" onclick="if(window.retryFirebaseConnection) window.retryFirebaseConnection(); else location.reload();">🔄 Retry Connection</button>
+        </div>`;
+        return;
     }
 
     if (msgs.length === 0) {
-        if(count > 0) {
-             inbox.innerHTML = `<div style="text-align:center;padding:48px 0;color:var(--muted)">
-                <div style="font-size:48px;margin-bottom:12px">🔄</div>
-                <div style="font-size:15px;font-weight:500">Syncing with Firebase...</div>
+        // Not yet connected — start/reset a timeout
+        if (!window.firebaseConnected) {
+            if (_fbSyncTimeout) clearTimeout(_fbSyncTimeout);
+            _fbSyncTimeout = setTimeout(() => {
+                // Still no data after 8s — show helpful message
+                const inbox2 = document.getElementById('messagesInbox');
+                if (inbox2 && !window.firebaseConnected) {
+                    inbox2.innerHTML = `<div style="text-align:center;padding:48px 20px;color:var(--muted)">
+                        <div style="font-size:48px;margin-bottom:12px">⚠️</div>
+                        <div style="font-size:15px;font-weight:600;color:var(--yellow);margin-bottom:6px">Firebase Taking Too Long</div>
+                        <div style="font-size:13px;margin-bottom:12px">Check your Firestore Security Rules in Firebase Console.<br>Rules should allow reads for the contacts collection.</div>
+                        <div style="font-size:12px;background:rgba(255,255,255,0.04);padding:10px 14px;border-radius:8px;margin-bottom:16px;text-align:left;max-width:380px;margin-left:auto;margin-right:auto">
+                            <span style="color:var(--muted)">Firestore Rules → Add:</span><br>
+                            <code style="color:var(--accent2)">allow read, write: if true;</code>
+                        </div>
+                        <button class="admin-btn" onclick="if(window.retryFirebaseConnection) window.retryFirebaseConnection(); else location.reload();">🔄 Retry</button>
+                    </div>`;
+                }
+            }, 8000);
+
+            inbox.innerHTML = `<div style="text-align:center;padding:48px 0;color:var(--muted)">
+                <div style="font-size:48px;margin-bottom:16px;animation:spin 1.2s linear infinite;display:inline-block">🔄</div>
+                <div style="font-size:15px;font-weight:500;margin-bottom:6px">Connecting to Firebase...</div>
+                <div style="font-size:12px">Loading your messages in real-time</div>
             </div>`;
         } else {
-             inbox.innerHTML = `<div style="text-align:center;padding:48px 0;color:var(--muted)">
+            // Firebase is connected but genuinely empty
+            if (_fbSyncTimeout) clearTimeout(_fbSyncTimeout);
+            inbox.innerHTML = `<div style="text-align:center;padding:48px 0;color:var(--muted)">
                 <div style="font-size:48px;margin-bottom:12px">📭</div>
                 <div style="font-size:15px;font-weight:500">No messages yet</div>
                 <div style="font-size:13px;margin-top:6px">When visitors submit your contact form, messages appear here instantly.</div>
@@ -1391,22 +1467,24 @@ window.updateMessagesUI = function() {
         return;
     }
 
-    let html = `<div style="margin-bottom:12px;font-size:13px;color:var(--green);font-weight:600">
-                  <span style="display:inline-block;width:8px;height:8px;background:var(--green);border-radius:50%;margin-right:6px;animation:pulse 2s infinite"></span>
-                  ${msgs.length} messages synced from Firebase (Real-time)
+    // We have messages — clear timeout
+    if (_fbSyncTimeout) clearTimeout(_fbSyncTimeout);
+
+    let html = `<div style="margin-bottom:16px;font-size:13px;color:var(--green);font-weight:600;display:flex;align-items:center;gap:8px">
+                  <span style="display:inline-block;width:8px;height:8px;background:var(--green);border-radius:50%;animation:pulse 2s infinite"></span>
+                  ${msgs.length} message${msgs.length !== 1 ? 's' : ''} — Live from Firebase
                 </div>`;
 
     msgs.forEach((m) => {
-        // Handle Firebase Timestamp or fallback
         let timeStr = 'Just now';
         if (m.timestamp && m.timestamp.toMillis) {
             timeStr = timeAgo(m.timestamp.toMillis());
         }
 
-        const name = m.name || 'Visitor';
-        const email = m.email || 'No email';
-        const subject = m.subject || 'No Subject';
-        const message = m.message || '';
+        const name = escHtml(m.name || 'Visitor');
+        const email = escHtml(m.email || 'No email');
+        const subject = escHtml(m.subject || 'No Subject');
+        const message = escHtml(m.message || '');
 
         html += `<div style="padding:16px;background:var(--surface2);border:1px solid rgba(108,92,231,0.2);border-radius:12px;margin-bottom:12px;box-shadow:0 4px 15px rgba(0,0,0,0.1)">
             <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;border-bottom:1px solid var(--border);padding-bottom:12px">
@@ -1418,7 +1496,6 @@ window.updateMessagesUI = function() {
                     🕒 ${timeStr}
                 </div>
             </div>
-            
             <div style="font-size:14px;font-weight:600;color:var(--accent2);margin-bottom:6px">📝 ${subject}</div>
             <div style="font-size:14px;color:var(--text);line-height:1.6;white-space:pre-wrap;background:rgba(0,0,0,0.2);padding:14px;border-radius:8px;border-left:3px solid var(--accent)">${message}</div>
         </div>`;
@@ -1426,6 +1503,10 @@ window.updateMessagesUI = function() {
     
     inbox.innerHTML = html;
 };
+
+function escHtml(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
 
 // Map original loadMessages to the new UI update manually just in case
 function loadMessages() {

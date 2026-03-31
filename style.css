@@ -735,7 +735,7 @@ body.content-reveal>*:not(#intro-screen) {
 }
 
 
-.btn-glow {
+.intro-btn-glow {
     position: absolute;
     inset: 0;
     background: radial-gradient(circle at var(--x, 50%) var(--y, 50%), rgba(255, 255, 255, 0.2) 0%, transparent 60%);
@@ -743,7 +743,7 @@ body.content-reveal>*:not(#intro-screen) {
     transition: opacity 0.3s;
 }
 
-.intro-start-btn:hover .btn-glow {
+.intro-start-btn:hover .intro-btn-glow {
     opacity: 1;
 }
 
