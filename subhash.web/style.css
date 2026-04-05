@@ -4702,6 +4702,10 @@ html {
                aiGlowPulse 2.5s ease-in-out infinite;
 }
 
+body:not(.content-reveal) .ai-chat-btn {
+    display: none !important;
+}
+
 @keyframes aiBtnBounce {
     0%, 100% { transform: translateY(0); }
     50%      { transform: translateY(-8px); }
