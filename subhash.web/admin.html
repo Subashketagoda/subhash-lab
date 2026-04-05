@@ -735,6 +735,11 @@
                 Messages
                 <span id="msgBadge" style="margin-left:auto;background:var(--accent);color:#fff;font-size:10px;padding:2px 6px;border-radius:8px;display:none">0</span>
             </div>
+            <div class="nav-item" onclick="showPanel('appointments', this)">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                Appointments
+                <span id="apptBadge" style="margin-left:auto;background:var(--accent);color:#fff;font-size:10px;padding:2px 6px;border-radius:8px;display:none">0</span>
+            </div>
             <div class="nav-item" onclick="showPanel('editor', this)">
                 <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
                 Page Editor
@@ -1091,6 +1096,19 @@
             </div>
         </div>
 
+        <!-- ── APPOINTMENTS PANEL ── -->
+        <div class="panel" id="panel-appointments">
+            <div class="card">
+                <div class="card-title"><span class="dot"></span> Inbox — Appointments</div>
+                <div id="appointmentsInbox">
+                    <div style="text-align:center;padding:40px 0;color:var(--muted)">
+                        <div style="font-size:40px;margin-bottom:12px">📅</div>
+                        <div style="font-size:14px">Loading appointments…</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- ── MESSAGES PANEL ── -->
         <div class="panel" id="panel-messages">
             <div class="card">
@@ -1434,6 +1452,30 @@
             return false;
         }
     };
+
+    // Appointments Data
+    window.firebaseAppointments = [];
+    const qAppt = query(collection(db, "appointments"), orderBy("timestamp", "desc"));
+    onSnapshot(qAppt, (snapshot) => {
+        window.firebaseAppointments = [];
+        snapshot.forEach((doc) => {
+            window.firebaseAppointments.push({ id: doc.id, ...doc.data() });
+        });
+        if(typeof window.updateAppointmentsUI === 'function') {
+            window.updateAppointmentsUI();
+        }
+    });
+
+    window.clearFirebaseAppointmentsAPI = async function() {
+        try {
+            const snap = await getDocs(collection(db, "appointments"));
+            snap.forEach(async (d) => await deleteDoc(d.ref));
+            return true;
+        } catch(e) {
+            console.error("Firebase clear error:", e);
+            return false;
+        }
+    };
 </script>
 
 <script>
@@ -1585,6 +1627,55 @@ async function clearInbox() {
     
     loadMessages();
 }
+
+let _apptSyncTimeout = null;
+window.updateAppointmentsUI = function() {
+    const inbox = document.getElementById('appointmentsInbox');
+    if (!inbox) return;
+
+    const msgs = window.firebaseAppointments && window.firebaseAppointments.length > 0 ? window.firebaseAppointments : [];
+    
+    const badge = document.getElementById('apptBadge');
+    if (badge) {
+        badge.textContent = msgs.length;
+        badge.style.display = msgs.length > 0 ? 'inline' : 'none';
+        if(msgs.length > 0) badge.style.background = '#00ceca';
+    }
+
+    if (msgs.length === 0) {
+        inbox.innerHTML = `<div style="text-align:center;padding:48px 0;color:var(--muted)">
+            <div style="font-size:48px;margin-bottom:12px">📅</div>
+            <div style="font-size:15px;font-weight:500">No appointments yet</div>
+        </div>`;
+        return;
+    }
+
+    let html = `<div style="margin-bottom:16px;font-size:13px;color:var(--green);font-weight:600;display:flex;align-items:center;gap:8px">
+                  <span style="display:inline-block;width:8px;height:8px;background:var(--green);border-radius:50%;animation:pulse 2s infinite"></span>
+                  ${msgs.length} appointment${msgs.length !== 1 ? 's' : ''} — Live from Firebase
+                </div>`;
+
+    msgs.forEach((m) => {
+        const name = escHtml(m.name || 'Visitor');
+        const phone = escHtml(m.phone || 'No Phone');
+        const date = escHtml(m.date || 'No Date');
+        const time = escHtml(m.time || 'No Time');
+        const service = escHtml(m.service || 'General');
+
+        html += `<div style="padding:16px;background:var(--surface2);border:1px solid rgba(108,92,231,0.2);border-radius:12px;margin-bottom:12px;box-shadow:0 4px 15px rgba(0,0,0,0.1)">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;border-bottom:1px solid var(--border);padding-bottom:12px">
+                <div>
+                    <div style="font-size:15px;font-weight:600;color:white;margin-bottom:4px">📅 ${name}</div>
+                    <div style="font-size:12px;color:var(--muted)">${service} — ${date} @ ${time}</div>
+                </div>
+            </div>
+            <div style="font-size:14px;color:var(--text);line-height:1.5;">
+                <Strong>Phone:</Strong> ${phone}
+            </div>
+        </div>`;
+    });
+    inbox.innerHTML = html;
+};
 
 // ══════════════════════════════════════════
 // SEO MANAGER
