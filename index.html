@@ -41,9 +41,50 @@
                 return false;
             }
         };
+
+        window.submitAppointmentToFirebase = async function(name, phone, date, time, service) {
+            try {
+                await addDoc(collection(db, "appointments"), {
+                    name, phone, date, time, service,
+                    status: "pending",
+                    timestamp: serverTimestamp()
+                });
+                // Send webhook to WhatsApp Bot (if applicable)
+                try {
+                    fetch("https://olivia-ai-bot.onrender.com/api/appointments", {
+                        method: "POST",
+                        headers: {"Content-Type": "application/json"},
+                        body: JSON.stringify({ name, phone, date, time, service })
+                    }).catch(err => console.log("Bot webhook ignored:", err));
+                } catch(e) {}
+                
+                return true;
+            } catch (e) {
+                console.error("Firebase Appointment Error: ", e);
+                return false;
+            }
+        };
     </script>
     <script src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.9.3/dist/dotlottie-wc.js" type="module"></script>
-    <link rel="stylesheet" href="style.css?v=46">
+    <link rel="stylesheet" href="style.css?v=53">
+    <!-- Dynamic Google Analytics -->
+    <script>
+        (function() {
+            const gaId = localStorage.getItem('so_admin_ga_id');
+            if (gaId && gaId.startsWith('G-')) {
+                const script = document.createElement('script');
+                script.async = true;
+                script.src = 'https://www.googletagmanager.com/gtag/js?id=' + gaId;
+                document.head.appendChild(script);
+
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', gaId);
+                console.log('⚡ Google Analytics connected: ' + gaId);
+            }
+        })();
+    </script>
 </head>
 <body>
     <!-- Premium Cinematic Intro -->
@@ -113,6 +154,7 @@
                     <a href="#services" class="nav-link">Services</a>
                     <a href="#about" class="nav-link">About</a>
                     <a href="#work" class="nav-link">Work</a>
+                    <a href="#appointment" class="nav-link">Booking</a>
                 </div>
 
                 <div class="nav-actions">
@@ -415,6 +457,76 @@
             </div>
         </section>
 
+        <!-- Appointments Section -->
+        <section id="appointment" class="section appointment">
+            <div class="section-container">
+                <div class="contact-layout">
+                    <div class="contact-left">
+                        <span class="chip">Book Online</span>
+                        <h2 class="section-title">Schedule a <span class="accent">Consultation</span></h2>
+                        <p class="contact-desc">Select a convenient time for a quick chat. Whether discussing a new brand strategy, digital transformation, or an event production, I'm here to help.</p>
+                        <div class="contact-details" style="margin-top: 30px;">
+                            <div class="contact-item">
+                                <div class="contact-icon">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                                </div>
+                                <div>
+                                    <span class="ci-label">Availability</span>
+                                    <span class="ci-value">Mon - Fri, 9:00 AM - 6:00 PM</span>
+                                </div>
+                            </div>
+                            <div class="contact-item">
+                                <div class="contact-icon">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                                </div>
+                                <div>
+                                    <span class="ci-label">Direct WhatsApp</span>
+                                    <span class="ci-value">+94 76 121 0164</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="contact-right">
+                        <form class="contact-form" id="appointmentForm">
+                            <div class="form-group">
+                                <label for="apptName">Full Name</label>
+                                <input type="text" id="apptName" placeholder="John Doe" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="apptPhone">Phone / WhatsApp Number</label>
+                                <input type="tel" id="apptPhone" placeholder="+94 7X XXX XXXX" required>
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label for="apptDate">Preferred Date</label>
+                                    <input type="date" id="apptDate" required>
+                                </div>
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label for="apptTime">Preferred Time</label>
+                                    <input type="time" id="apptTime" required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="apptService">Service Type</label>
+                                <select id="apptService" required>
+                                    <option value="" disabled selected>Select an option</option>
+                                    <option value="69 Studio - Web & Digital">69 Studio - Web & Digital</option>
+                                    <option value="Special Beats - Event Production">Special Beats - Event Production</option>
+                                    <option value="Zenvora - Fashion / UX">Zenvora - Fashion / UX</option>
+                                    <option value="Business Consultation">Business Consultation</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn-glow full-width" style="margin-top: 10px;">
+                                <span>Confirm Appointment</span>
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                                <div class="btn-shine"></div>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- CTA Banner -->
         <section class="cta-banner">
             <div class="section-container">
@@ -528,6 +640,7 @@
                         <a href="#services">Services</a>
                         <a href="#about">About</a>
                         <a href="#work">Portfolio</a>
+                        <a href="#appointment">Bookings</a>
                     </div>
                     <div class="footer-col">
                         <h4>Services</h4>
@@ -545,7 +658,7 @@
         </div>
     </footer>
 
-    <script src="main.js?v=6"></script>
+    <script src="main.js?v=16"></script>
 
     <!-- ══ REAL VISIT TRACKING ══ -->
     <script>
@@ -588,6 +701,36 @@
 
     })();
     </script>
+    <div class="ai-chat-btn" id="aiChatBtn" title="Chat with Olivia AI">
+        <!-- Pulse ring -->
+        <span class="ai-btn-pulse"></span>
+        <!-- AI Girl Avatar -->
+        <img src="assets/olivia.png?v=1" alt="Olivia" class="ai-photo-btn">
+    </div>
+
+    <div class="ai-chat-window" id="aiChatWindow">
+        <div class="ai-chat-header">
+            <div class="ai-chat-title">
+                <div class="ai-avatar">
+                   <img src="assets/olivia.png?v=1" alt="Olivia" class="ai-head-avatar">
+                </div>
+                <div>
+                    <strong>Olivia</strong>
+                    <span>AI Assistant</span>
+                </div>
+            </div>
+            <button class="ai-chat-close" id="aiChatClose">&times;</button>
+        </div>
+        <div class="ai-chat-body" id="aiChatBody">
+            <div class="ai-msg ai-msg-bot">Hi! I'm Olivia, Subhash's AI Assistant. ✨ How can I help you today?</div>
+        </div>
+        <div class="ai-chat-input-area">
+            <input type="text" id="aiChatInput" placeholder="Ask me anything...">
+            <button id="aiChatSend">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+            </button>
+        </div>
+    </div>
 </body>
 </html>
 

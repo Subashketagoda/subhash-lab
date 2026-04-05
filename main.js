@@ -214,27 +214,36 @@ window.addEventListener('load', () => {
             } catch(e) { return false; }
         }
 
-        // High-end Cinematic Sound Synthesis
+        // High-end Cinematic Sound Synthesis (Fixed for Mobile Audibility)
         function playCinematicEnterSound() {
             try {
                 if (!globalAudioCtx) return;
                 const ctx = globalAudioCtx;
+                // Ensure context is running just in case
+                if (ctx.state === 'suspended') ctx.resume();
 
-                // 1. Deep Bass Boom (Low frequency rumble)
+                // Master Gain for extra loudness
+                const masterGain = ctx.createGain();
+                masterGain.gain.value = 1.8; // Boost master volume
+                masterGain.connect(ctx.destination);
+
+                const t = ctx.currentTime;
+
+                // 1. Thick Sub/Mid Bass (Audible on mobile: 80Hz - 250Hz range)
                 const bass = ctx.createOscillator();
                 const bassGain = ctx.createGain();
-                bass.type = 'sine';
+                bass.type = 'sawtooth'; // Sawtooth has upper harmonics audible on phones
                 bass.connect(bassGain);
-                bassGain.connect(ctx.destination);
+                bassGain.connect(masterGain);
                 
-                bass.frequency.setValueAtTime(150, ctx.currentTime);
-                bass.frequency.exponentialRampToValueAtTime(30, ctx.currentTime + 1.5);
+                bass.frequency.setValueAtTime(250, t);
+                bass.frequency.exponentialRampToValueAtTime(50, t + 1.5);
                 
-                bassGain.gain.setValueAtTime(0, ctx.currentTime);
-                bassGain.gain.linearRampToValueAtTime(1.5, ctx.currentTime + 0.1);
-                bassGain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 2.0);
+                bassGain.gain.setValueAtTime(0, t);
+                bassGain.gain.linearRampToValueAtTime(0.8, t + 0.1);
+                bassGain.gain.exponentialRampToValueAtTime(0.01, t + 1.5);
 
-                // 2. Sci-Fi Warp Whoosh (White noise with frequency sweep)
+                // 2. Sci-Fi Warp Whoosh (White noise with sweeping lowpass)
                 const noiseBuffer = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
                 const output = noiseBuffer.getChannelData(0);
                 for (let i = 0; i < noiseBuffer.length; i++) output[i] = Math.random() * 2 - 1;
@@ -243,40 +252,42 @@ window.addEventListener('load', () => {
                 whiteNoise.buffer = noiseBuffer;
 
                 const noiseFilter = ctx.createBiquadFilter();
-                noiseFilter.type = 'bandpass';
-                noiseFilter.Q.value = 1.0;
-                noiseFilter.frequency.setValueAtTime(100, ctx.currentTime);
-                noiseFilter.frequency.exponentialRampToValueAtTime(3000, ctx.currentTime + 0.7);
-                noiseFilter.frequency.exponentialRampToValueAtTime(100, ctx.currentTime + 1.8);
+                noiseFilter.type = 'lowpass'; // Lowpass sounds fuller like a wind/whoosh
+                noiseFilter.Q.value = 2.0;
+                noiseFilter.frequency.setValueAtTime(200, t);
+                noiseFilter.frequency.exponentialRampToValueAtTime(8000, t + 0.6);
+                noiseFilter.frequency.exponentialRampToValueAtTime(100, t + 1.8);
 
                 const noiseGain = ctx.createGain();
-                noiseGain.gain.setValueAtTime(0, ctx.currentTime);
-                noiseGain.gain.linearRampToValueAtTime(0.6, ctx.currentTime + 0.7);
-                noiseGain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 2.0);
+                noiseGain.gain.setValueAtTime(0, t);
+                noiseGain.gain.linearRampToValueAtTime(0.8, t + 0.4);
+                noiseGain.gain.exponentialRampToValueAtTime(0.01, t + 2.0);
 
                 whiteNoise.connect(noiseFilter);
                 noiseFilter.connect(noiseGain);
-                noiseGain.connect(ctx.destination);
+                noiseGain.connect(masterGain);
 
-                // 3. High-Tech Synth Sweep
+                // 3. High-Tech Synth Chime / Sparkle
                 const synth = ctx.createOscillator();
                 const synthGain = ctx.createGain();
+                // Square wave gives that classic sci-fi/tech computer sound
                 synth.type = 'square';
                 synth.connect(synthGain);
-                synthGain.connect(ctx.destination);
+                synthGain.connect(masterGain);
                 
-                synth.frequency.setValueAtTime(600, ctx.currentTime);
-                synth.frequency.exponentialRampToValueAtTime(100, ctx.currentTime + 0.8);
+                synth.frequency.setValueAtTime(1200, t);
+                synth.frequency.exponentialRampToValueAtTime(200, t + 0.8);
                 
-                synthGain.gain.setValueAtTime(0, ctx.currentTime);
-                synthGain.gain.linearRampToValueAtTime(0.1, ctx.currentTime + 0.2);
-                synthGain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1.0);
+                synthGain.gain.setValueAtTime(0, t);
+                synthGain.gain.linearRampToValueAtTime(0.25, t + 0.1);
+                synthGain.gain.exponentialRampToValueAtTime(0.01, t + 1.0);
 
-                // Play all synthesized nodes
-                bass.start(ctx.currentTime); bass.stop(ctx.currentTime + 2.0);
-                whiteNoise.start(ctx.currentTime); whiteNoise.stop(ctx.currentTime + 2.0);
-                synth.start(ctx.currentTime); synth.stop(ctx.currentTime + 1.0);
-            } catch (e) { console.error("Audio API not supported", e); }
+                // Play all nodes
+                bass.start(t); bass.stop(t + 1.6);
+                whiteNoise.start(t); whiteNoise.stop(t + 2.0);
+                synth.start(t); synth.stop(t + 1.1);
+                
+            } catch (e) { console.error("Audio API error:", e); }
         }
 
         const swipeBar = document.getElementById('introSwipeBar');
@@ -616,6 +627,44 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
+    // APPOINTMENT FORM SUBMISSION
+    // ==========================================
+    const appointmentForm = document.getElementById('appointmentForm');
+    if (appointmentForm) {
+        appointmentForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const name = document.getElementById('apptName')?.value || 'Guest';
+            const phone = document.getElementById('apptPhone')?.value || 'No Phone';
+            const date = document.getElementById('apptDate')?.value || '';
+            const time = document.getElementById('apptTime')?.value || '';
+            const service = document.getElementById('apptService')?.value || 'General';
+            
+            if (typeof window.submitAppointmentToFirebase === 'function') {
+                await window.submitAppointmentToFirebase(name, phone, date, time, service);
+            }
+            
+            // Log local activity
+            const log = JSON.parse(localStorage.getItem('so_activity_log') || '[]');
+            const richMsg = `<strong>Service:</strong> ${service}<br><strong>Date/Time:</strong> ${date} at ${time}<br><strong>Contact:</strong> ${phone}`;
+            log.unshift({
+                type: 'info',
+                msg: `New Appointment booked by <strong>${name}</strong><br><div style="margin-top:8px;padding:10px;background:rgba(0,0,0,0.2);border-radius:8px;border-left:3px solid var(--accent)">${richMsg}</div>`,
+                ts: Date.now()
+            });
+            if (log.length > 50) log.length = 50;
+            localStorage.setItem('so_activity_log', JSON.stringify(log));
+
+            const btn = appointmentForm.querySelector('button[type="submit"] span');
+            if(btn) btn.textContent = 'Appointment Confirmed! ✓';
+            setTimeout(() => {
+                if(btn) btn.textContent = 'Confirm Appointment';
+                appointmentForm.reset();
+            }, 3000);
+        });
+    }
+
+    // ==========================================
     // LIQUID GLASS SWIPE LOGIC
     // ==========================================
     const swipeContainer = document.getElementById('swipeContainer');
@@ -819,5 +868,172 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     } catch(e) { console.error('Error applying admin settings', e); }
+});
 
+// ==========================================
+// OLIVIA AI CHATBOT — ISOLATED ENGINE
+// ==========================================
+document.addEventListener('DOMContentLoaded', () => {
+    console.log("Olivia AI Web App initializing...");
+    
+    try {
+        const aiBtn = document.getElementById('aiChatBtn');
+        const aiWindow = document.getElementById('aiChatWindow');
+        const aiClose = document.getElementById('aiChatClose');
+        const aiBody = document.getElementById('aiChatBody');
+        const aiInput = document.getElementById('aiChatInput');
+        const aiSend = document.getElementById('aiChatSend');
+
+        if (!aiBtn || !aiWindow) return;
+
+        // --- Remote config sync ---
+        const aiConfig = JSON.parse(localStorage.getItem('so_olivia_config') || '{"active":true,"scroll":300,"name":"Olivia","status":"AI Assistant"}');
+        
+        if (!aiConfig.active) {
+            aiBtn.style.display = 'none';
+            return;
+        }
+
+        // --- Update UI ---
+        const headerName = aiWindow.querySelector('.ai-chat-title strong');
+        const headerStatus = aiWindow.querySelector('.ai-chat-title span');
+        if (headerName) headerName.textContent = aiConfig.name || "Olivia";
+        if (headerStatus) headerStatus.textContent = aiConfig.status || "AI Assistant";
+
+        if (aiConfig.welcome) {
+            const firstMsg = aiBody.querySelector('.ai-msg-bot');
+            if (firstMsg) firstMsg.textContent = aiConfig.welcome;
+        }
+        aiWindow.classList.remove('open');
+
+        // --- Scroll logic ---
+        const scrollLimit = aiConfig.scroll || 300;
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > scrollLimit) {
+                aiBtn.classList.add('show-ai-btn');
+            } else {
+                aiBtn.classList.remove('show-ai-btn');
+                aiWindow.classList.remove('open');
+            }
+        });
+
+        if (window.scrollY > scrollLimit) aiBtn.classList.add('show-ai-btn');
+
+        // --- Interaction logic ---
+        aiBtn.addEventListener('click', () => {
+            aiWindow.classList.toggle('open');
+            if (aiWindow.classList.contains('open')) aiInput.focus();
+        });
+
+        aiClose.addEventListener('click', () => aiWindow.classList.remove('open'));
+
+        const addMessage = (text, isUser) => {
+            const msgEl = document.createElement('div');
+            msgEl.className = `ai-msg ${isUser ? 'ai-msg-user' : 'ai-msg-bot'}`;
+            msgEl.textContent = text;
+            aiBody.appendChild(msgEl);
+            aiBody.scrollTop = aiBody.scrollHeight;
+        };
+
+        const showTyping = () => {
+            const typingEl = document.createElement('div');
+            typingEl.className = 'ai-typing';
+            typingEl.innerHTML = '<span></span><span></span><span></span>';
+            aiBody.appendChild(typingEl);
+            aiBody.scrollTop = aiBody.scrollHeight;
+            return typingEl;
+        };
+
+        // --- Dummy AI Response Engine ---
+        const aiKnowledge = {
+            greetings: {
+                kw: ["hi", "hello", "hey", "hola", "greetings", "kohomada", "halow", "morning"],
+                ans: [
+                    "Hi there! 👋 I'm Olivia. How can I assist you?",
+                    "Hello! ✨ Olivia here. How can I help you?",
+                    "Hey! Hope you're having a productive day. How can I help?"
+                ]
+            },
+            contact: {
+                kw: ["contact", "email", "phone", "call", "reach", "message", "hire"],
+                ans: [
+                    "You can reach Subhash via the contact form or call +94 76 121 0164.",
+                    "Looking to collaborate? 🤝 Use the form below or drop an email to hello@subhash.online.",
+                    "The fastest way is the contact form on this page! You can also WhatsApp +94 76 121 0164."
+                ]
+            },
+            services: {
+                kw: ["service", "what do you do", "skills", "offer", "tech", "development", "web", "design", "app"],
+                ans: [
+                    "Subhash specializes in Web Development, Brand Strategy, and Digital Growth. 🚀",
+                    "From UI/UX design to full-stack engineering, we build premium digital products.",
+                    "We offer end-to-end digital transformation. Check the Services section!"
+                ]
+            },
+            pricing: {
+                kw: ["price", "cost", "how much", "rate", "budget", "quote"],
+                ans: [
+                    "Project pricing depends on your specific needs! Send a message via the form below.",
+                    "We offer customized solutions for any budget! Let's discuss your project details.",
+                    "Every project is unique! Send us a brief description and we'll send a proposal."
+                ]
+            },
+            about: {
+                kw: ["who are you", "who is subhash", "about", "69 studio", "kawuda", "subhash kauruda"],
+                ans: [
+                    "Subhash is a visionary entrepreneur from Colombo. He owns 69 Studio and Special Beats.",
+                    "I'm Olivia, Subhash's personal AI assistant! Subhash is an expert in digital branding.",
+                    "Subhash is a creative digital professional dedicated to building premium brands."
+                ]
+            }
+        };
+
+        const getAiResponse = (text) => {
+            const lowerText = text.toLowerCase();
+            const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
+            for (const category in aiKnowledge) {
+                if (aiKnowledge[category].kw.some(w => lowerText.includes(w))) {
+                    return pick(aiKnowledge[category].ans);
+                }
+            }
+            
+            return "I'm not exactly sure about that, but Subhash would definitely know! Why not drop him a message via the form? 🚀";
+        };
+
+        const handleSend = () => {
+            const text = aiInput.value.trim();
+            if(!text) return;
+            
+            addMessage(text, true);
+            aiInput.value = '';
+
+            // --- SAVE TO ADMIN DATABASE (Activity Feed) ---
+            try {
+                const log = JSON.parse(localStorage.getItem('so_activity_log') || '[]');
+                log.unshift({
+                    type: 'info',
+                    msg: `AI Chat: Guest asked: <strong>"${text}"</strong>`,
+                    ts: Date.now()
+                });
+                if (log.length > 50) log.length = 50;
+                localStorage.setItem('so_activity_log', JSON.stringify(log));
+            } catch(e) {}
+            
+            const typingInd = showTyping();
+            
+            setTimeout(() => {
+                if (typingInd && typingInd.parentNode) typingInd.remove();
+                addMessage(getAiResponse(text), false);
+            }, 1200);
+        };
+
+        aiSend.addEventListener('click', handleSend);
+        aiInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleSend();
+        });
+
+    } catch (err) {
+        console.error("Olivia AI Error:", err);
+    }
 });
