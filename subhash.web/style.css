@@ -4639,6 +4639,7 @@ html {
     justify-content: center;
     color: white;
     cursor: pointer;
+    z-index: 9000;
     box-shadow:
         0 0 0 0 rgba(79, 70, 229, 0.6),
         0 10px 30px rgba(79, 70, 229, 0.5);
