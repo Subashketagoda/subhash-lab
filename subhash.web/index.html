@@ -51,7 +51,7 @@
                 });
                 // Send webhook to WhatsApp Bot (if applicable)
                 try {
-                    fetch("https://olivia-ai-bot.onrender.com/api/appointments", {
+                    fetch("https://whatsapp-ai-bot-2-vsqm.onrender.com/api/appointments/add", {
                         method: "POST",
                         headers: {"Content-Type": "application/json"},
                         body: JSON.stringify({ name, phone, date, time, service })
